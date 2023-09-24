@@ -13,6 +13,12 @@ function make_3rd_party() {
      ./install
   fi
   cd $CASEDIR
+
+  if [ $ASCENT -ne 0 ]; then
+     cd $SOURCE_ROOT/3rd_party/nek_ascent
+     ./install $ASCENT_DIR
+  fi
+  cd $CASEDIR
 }
 
 function clean_3rd_party() {
@@ -20,6 +26,8 @@ function clean_3rd_party() {
   cd $SOURCE_ROOT/3rd_party/gslib; ./install clean 2>/dev/null
   cd $CASEDIR
   cd $SOURCE_ROOT/3rd_party/cvode; ./install clean 2>/dev/null
+  cd $CASEDIR
+  cd $SOURCE_ROOT/3rd_party/nek_ascent; ./install clean 2>/dev/null
   cd $CASEDIR
 }
 
@@ -42,6 +50,8 @@ if [ "$PPLIST" == "?" ]; then
   echo "  LPM         activate Lagrangian Particles (experimental)"
   exit 1
 fi
+
+: ${ASCENT:=0}
 
 # first do some checks ...
 if [ "$1" == "-h" ]; then
@@ -73,6 +83,11 @@ fi
 if [ ! "$SOURCE_ROOT_GSLIB" ]; then
   SOURCE_ROOT_GSLIB="$SOURCE_ROOT/3rd_party/gslib/lib"
   export SOURCE_ROOT_GSLIB
+fi
+
+if [ ! "$SOURCE_ROOT_ASCENT" ]; then
+  SOURCE_ROOT_ASCENT="$SOURCE_ROOT/3rd_party/nek_ascent"
+  export SOURCE_ROOT_ASCENT
 fi
 
 if [[ $1 = "clean" ]]; then
@@ -226,6 +241,10 @@ if [ $PROFILING -ne 0 ]; then
   fi
 fi
 
+if [ $ASCENT -ne 0 ]; then
+   PPLIST="${PPLIST} ASCENT"
+fi
+
 PPLIST="${PPLIST}"
 
 # add user defined preprocessor symbols
@@ -329,6 +348,22 @@ if [ $VISIT -ne 0 ]; then
 
   mv .makefile.tmp .makefile
   echo ""
+fi
+
+if [ $ASCENT -ne 0 ]; then
+   echo ""
+   echo "ASCENT enabled"
+   echo "ASCENT_DIR = ($ASCENT_DIR)"
+
+   NEK_ASCENT_LIB="$SOURCE_ROOT_ASCENT/lib"
+   ASCENT_LFLAGS="-L$NEK_ASCENT_LIB -lnekascent -lstdc++"
+
+  sed -e "s/^ASCENT[ ]*=.*/ASCENT:=${ASCENT}/" \
+       -e "s:^ASCENT_LFLAGS[ ]*=.*:ASCENT_LFLAGS\:=${ASCENT_LFLAGS}:" \
+       .makefile > .makefile.tmp
+
+   mv .makefile.tmp .makefile
+   echo ""
 fi
 
 if [ "$USR" != "" ]; then

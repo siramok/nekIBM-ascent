@@ -10,5 +10,5 @@ genmap:	$(OBJS)
 clean:
 	@rm -f *.o
 
-genmap.o        : genmap.f		;  $(FC) -c $(FFLAGS) genmap.f
+genmap.o        : genmap.f		;  $(FC) -c $(FFLAGS) -std=legacy genmap.f
 byte.o		: ../../core/byte.c	;  $(CC) -c $(CFLAGS) ../../core/byte.c

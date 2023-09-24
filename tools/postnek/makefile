@@ -19,6 +19,7 @@ endif
 endif
 
 S     = .
+FFLAGS += -std=legacy
 
 NOBJS = postnek.o postnek2.o postnek3.o postnek5.o postnek6.o tsort.o \
 	postnek8.o postnek9.o plot.o getfld.o legend.o userf.o revert.o \

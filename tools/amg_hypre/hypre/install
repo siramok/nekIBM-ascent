@@ -3,11 +3,10 @@ set -e
 if [ -f ./lib/libHYPRE.a ]; then
   exit 0
 fi
-if [ ! -f v2.11.2.tar.gz ]; then
-  wget -O v2.11.2.tar.gz https://github.com/LLNL/hypre/archive/v2.11.2.tar.gz 
+if [ ! -d "hypre" ]; then
+  git clone https://github.com/hypre-space/hypre.git -b v2.11.2
 fi
 
-tar -zxf *.tar.gz
 cd hypre*/src
 ./configure --prefix=`pwd`/../.. --without-MPI
 make -j4 install

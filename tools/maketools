@@ -7,15 +7,18 @@
 #bin_nek_tools=`cd ../bin && pwd`
 
 # Fortran compiler
-#FC="gfortran"
+FC="gfortran"
 #FFLAGS=""
 
 # C compiler
-#CC="gcc"
+CC="gcc"
 #CFLAGS=""
 
 # linking flags
 #LDFLAGS="-L$HOME/lib -lm"
+
+
+
 
 
 

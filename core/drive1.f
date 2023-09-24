@@ -145,6 +145,7 @@ c      ifsync = .true.
 
       jp = 0            ! Set perturbation field count to 0 for baseline flow
 
+      call nek_ascent_setup()
       call in_situ_init()
 
       call time00       !     Initalize timers to ZERO
@@ -212,6 +213,7 @@ c-----------------------------------------------------------------------
 #endif
 #endif
          call prepost (ifoutfld,'his')
+         call nek_ascent_update()
          call in_situ_check()
          if (lastep .eq. 1) goto 1001
       enddo
@@ -343,7 +345,7 @@ c-----------------------------------------------------------------------
       if(instep.ne.0)  call runstat
       if(xxth(1).gt.0) call fgslib_crs_stats(xxth(1))
 
-   
+      call nek_ascent_finalize()
       call in_situ_end()
       return
       end

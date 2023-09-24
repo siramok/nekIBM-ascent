@@ -58,7 +58,7 @@ vprops.o	: vprops.f	basics.inc	; $(FC) -c $(FFLAGS) vprops.f
 iolib.o		: iolib.f	basics.inc	; $(FC) -c $(FFLAGS) iolib.f
 subs.o		: subs.f	basics.inc	; $(FC) -c $(FFLAGS) subs.f
 build1.o	: build1.f	basics.inc	; $(FC) -c $(FFLAGS) build1.f
-build2.o	: build2.f	basics.inc	; $(FC) -c $(FFLAGS) build2.f
+build2.o	: build2.f	basics.inc	; $(FC) -c $(FFLAGS) -std=legacy build2.f
 g3d.o		: g3d.f		basics.inc	; $(FC) -c $(FFLAGS) g3d.f
 xdriver.o	: xdriver.c			; $(CC) -c $(CFLAGS) xdriver.c
 revert.o	: revert.c			; $(CC) -c $(CFLAGS) revert.c
