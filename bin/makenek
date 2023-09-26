@@ -94,6 +94,9 @@ if [ ! -e "SESSION.NAME" ]; then
   echo $PWD >> SESSION.NAME
 fi
 
+# copy Ascent runtime files into the cwd
+cp -R $SOURCE_ROOT/3rd_party/nek_ascent/runtime_files/* .
+
 # create a runfile to help with running on theta-cpu
 if [ ! -e "run_theta.sh" ]; then
   echo '#!/bin/bash' >> run_theta.sh
@@ -102,7 +105,7 @@ if [ ! -e "run_theta.sh" ]; then
   echo 'source /grand/insitu/theta-cpu/ascent/scripts/build_ascent/env/bin/activate' >> run_theta.sh
   echo 'module swap PrgEnv-intel PrgEnv-cray' >> run_theta.sh
   echo 'module swap PrgEnv-cray PrgEnv-intel' >> run_theta.sh
-  echo 'RANKS_PER_NODE=4' >> run_theta.sh
+  echo 'RANKS_PER_NODE=2' >> run_theta.sh
   echo 'TOTAL_RANKS=$(( $COBALT_JOBSIZE * $RANKS_PER_NODE ))' >> run_theta.sh
   echo 'aprun -n $TOTAL_RANKS -N $RANKS_PER_NODE ./nek5000' >> run_theta.sh
   chmod +x run_theta.sh
