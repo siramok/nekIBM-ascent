@@ -19,9 +19,6 @@ void ascent_update(int *step, double *time, char *casename, int *elems,
                    double *vort_x_min, double *vort_x_max, double *vort_y_min, double *vort_y_max, double *vort_z_min, double *vort_z_max,
                    double *pr_min, double *pr_max, double *temp_min, double *temp_max, double *jac_min, double *jac_max)
 {
-    int rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
     int n_elems = *elems;
     int x_dim = *vx_dim;
     int y_dim = *vy_dim;
@@ -29,6 +26,7 @@ void ascent_update(int *step, double *time, char *casename, int *elems,
     int x_len = x_dim - 1;
     int y_len = y_dim - 1;
     int z_len = z_dim - 1;
+    int mesh_size = x_dim * y_dim * z_dim * n_elems;
     int n_cells = 0;
     int conn_size = 0;
 
@@ -76,6 +74,7 @@ void ascent_update(int *step, double *time, char *casename, int *elems,
                     for (int x = 0; x < x_len; x++)
                     {
 
+                        // Needs to be tested, probably needs fixing
                         it[0] = x + x_dim * (y + y_dim * (z + z_dim * elem));
                         it[1] = it[0] + x_dim * y_dim;
                         it[2] = it[1] + x_dim;
@@ -97,31 +96,41 @@ void ascent_update(int *step, double *time, char *casename, int *elems,
     data["state/time"] = *time;
 
     data["coordsets/coords/type"] = "explicit";
-    data["coordsets/coords/values/x"].set_external(vmesh_x, n_elems);
-    data["coordsets/coords/values/y"].set_external(vmesh_y, n_elems);
-    data["coordsets/coords/values/z"].set_external(vmesh_z, n_elems);
+    data["coordsets/coords/values/x"].set_external(vmesh_x, mesh_size);
+    data["coordsets/coords/values/y"].set_external(vmesh_y, mesh_size);
+    data["coordsets/coords/values/z"].set_external(vmesh_z, mesh_size);
 
     data["topologies/topo/type"] = "unstructured";
     data["topologies/topo/coordset"] = "coords";
-    data["topologies/topo/elements/shape"] = "hex";
+    data["topologies/topo/elements/shape"] = "quad";
     data["topologies/topo/elements/connectivity"].set_external(a_etov);
 
     data["fields/vel_x/association"] = "vertex";
     data["fields/vel_x/topology"] = "topo";
-    data["fields/vel_x/values"].set_external(vel_x, n_elems);
+    data["fields/vel_x/values"].set_external(vel_x, mesh_size);
 
     data["fields/vel_y/association"] = "vertex";
     data["fields/vel_y/topology"] = "topo";
-    data["fields/vel_y/values"].set_external(vel_y, n_elems);
+    data["fields/vel_y/values"].set_external(vel_y, mesh_size);
 
     data["fields/vel_z/association"] = "vertex";
     data["fields/vel_z/topology"] = "topo";
-    data["fields/vel_z/values"].set_external(vel_z, n_elems);
+    data["fields/vel_z/values"].set_external(vel_z, mesh_size);
 
     mAscent.publish(data);
 
     conduit::Node actions;
     mAscent.execute(actions);
+
+    // For debug
+    // int rank;
+    // MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+    // if (*step == 20 && rank == 0)
+    // {
+    //     data.print();
+    //     std::cin.get();
+    // }
 }
 
 void ascent_finalize()

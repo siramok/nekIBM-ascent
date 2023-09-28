@@ -20,7 +20,7 @@
     s1:
       plots:
         p1:
-          type: "volume"
+          type: "pseudocolor"
           field: "vel_mag"
           pipeline: "pl1"
         p2:
