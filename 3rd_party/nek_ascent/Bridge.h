@@ -47,6 +47,7 @@ extern "C"
     void register_bool_callback(std::string callback_name, bool (*callback_function)(void));
 
     // Callbacks
+    void callback_test(conduit::Node &params, conduit::Node &output);
 
 #ifdef __cplusplus
 } // extern "C"

@@ -131,6 +131,10 @@ void ascent_update(int *step, double *time, char *casename, int *elems,
     //     data.print();
     //     std::cin.get();
     // }
+
+    conduit::Node params;
+    conduit::Node output;
+    callback_test(params, output);
 }
 
 void ascent_finalize()
@@ -150,3 +154,10 @@ void register_bool_callback(std::string callback_name, bool (*callback_function)
 }
 
 // Callbacks
+extern "C" void nek_ascent_callback_test_();
+
+void callback_test(conduit::Node &params, conduit::Node &output)
+{
+    nek_ascent_callback_test_();
+    std::cin.get();
+}
