@@ -1,0 +1,24 @@
+- 
+  action: "add_pipelines"
+  pipelines: 
+    pl1: 
+      f1: 
+        type: "3slice"
+        params: 
+          x_offset: 0.0
+          y_offset: 0.0
+          z_offset: 0.0
+-
+  action: "add_scenes"
+  scenes:
+    s1:
+      plots:
+        p1:
+          type: "pseudocolor"
+          field: "vel_mag"
+          pipeline: "pl1"
+        p2:
+          type: "mesh"
+      renders:
+        r1:
+          image_prefix: "test_%04d"

@@ -83,9 +83,9 @@ ifneq ($(VISIT),0)
 endif
 # ASCENT #######################################################################
 ifneq ($(ASCENT),0)
-  include /home/siramok/theta-cpu/ascent/scripts/build_ascent/install/ascent-develop/share/ascent/ascent_config.mk
+  include /grand/insitu/polaris/ascent/scripts/build_ascent/install/ascent-develop/share/ascent/ascent_config.mk
   NEK_ASCENT_FLAGS := $(PPPO)-DCASENAME="\"$(CASENAME)\"" $(ASCENT_INCLUDE_FLAGS)
-  ASCENT_LFLAGS := $(ASCENT_LFLAGS) $(ASCENT_LINK_RPATH) $(ASCENT_MPI_LIB_FLAGS)
+  ASCENT_LFLAGS := $(ASCENT_LFLAGS) $(ASCENT_LINK_RPATH) $(ASCENT_MPI_CUDA_LIB_FLAGS)
   USR_LFLAGS := ${USR_LFLAGS} $(ASCENT_LFLAGS)
 endif
 

@@ -2,19 +2,18 @@
 #-------------------------------------------------------------------------------
 # Nek5000 config file
 #-------------------------------------------------------------------------------
-
-# Needed for theta-cpu
-export CRAYPE_LINK_TYPE=dynamic
+source /grand/insitu/polaris/sourceme
 
 # source path 
-SOURCE_ROOT=$HOME/theta-cpu/nekIBM-ascent
+SOURCE_ROOT=/grand/insitu/polaris/nekIBM-ascent
 
 # Fortran/C compiler
 FC="ftn"
 CC="cc"
+CXX="CC"
 
 # pre-processor list (set to "?" to get a list of available symbols)
-#PPLIST="?"
+PPLIST="LPM"
 
 #-------------------------------------------------------------------------------
 # WHAT FOLLOWS ARE OPTIONAL SETTINGS
@@ -22,11 +21,11 @@ CC="cc"
 
 # Ascent cmake directory
 ASCENT=1
-ASCENT_DIR="/grand/insitu/theta-cpu/ascent/scripts/build_ascent/install/ascent-develop/lib/cmake/ascent"
+ASCENT_DIR="/grand/insitu/polaris/ascent/scripts/build_ascent/install/ascent-develop/lib/cmake/ascent"
 
 # optional compiler flags
-FFLAGS="-dynamic -xMIC-AVX512 -O2 -align array64byte -fma -finline-functions -shared-intel"
-CFLAGS="-dynamic -xMIC-AVX512 -O2 -shared-intel"
+FFLAGS="-std=legacy -mcmodel=medium -fallow-argument-mismatch"
+# CFLAGS=""
 
 # optional linking flags
 #USR_LFLAGS+=" -L/usr/lib -lfoo"
@@ -40,7 +39,7 @@ CFLAGS="-dynamic -xMIC-AVX512 -O2 -shared-intel"
 #MPI=0
 
 # profiling (default 1)
-#PROFILING=0
+#PROFILING=0fi
 
 # VisIt in situ (default 0)
 #VISIT=1
@@ -55,16 +54,11 @@ CFLAGS="-dynamic -xMIC-AVX512 -O2 -shared-intel"
 ###############################################################################
 set -e
 
-export CRAYPE_LINK_TYPE=dynamic
-module load cmake/3.20.4
-module load cray-python/3.9.4.1
-source /grand/insitu/theta-cpu/ascent/scripts/build_ascent/env/bin/activate
-
 # assign version tag
 mver=17.0.4
 
 # set defaults
-: ${SOURCE_ROOT:="$HOME/theta-cpu/nekIBM-ascent"}
+: ${SOURCE_ROOT:="/grand/insitu/polaris/nekIBM-ascent"}
 : ${FC:="mpif77"}
 : ${CC:="mpicc"}
 : ${MPI:=1}
@@ -86,7 +80,7 @@ source $SOURCE_ROOT/core/makenek.inc
 make_3rd_party 2>&1 | tee -a compiler.out
 
 # compile nek
-make -j4 -f makefile 2>&1 | tee -a compiler.out
+make -j8 -f makefile 2>&1 | tee -a compiler.out
 
 # create a better default session file
 if [ ! -e "SESSION.NAME" ]; then
@@ -97,18 +91,16 @@ fi
 # copy Ascent runtime files into the cwd
 cp -R $SOURCE_ROOT/3rd_party/nek_ascent/runtime_files/* .
 
-# create a runfile to help with running on theta-cpu
-if [ ! -e "run_theta.sh" ]; then
-  echo '#!/bin/bash' >> run_theta.sh
-  echo 'export CRAYPE_LINK_TYPE=dynamic' >> run_theta.sh
-  echo 'module load cray-python/3.9.4.1' >> run_theta.sh
-  echo 'source /grand/insitu/theta-cpu/ascent/scripts/build_ascent/env/bin/activate' >> run_theta.sh
-  echo 'module swap PrgEnv-intel PrgEnv-cray' >> run_theta.sh
-  echo 'module swap PrgEnv-cray PrgEnv-intel' >> run_theta.sh
-  echo 'RANKS_PER_NODE=2' >> run_theta.sh
-  echo 'TOTAL_RANKS=$(( $COBALT_JOBSIZE * $RANKS_PER_NODE ))' >> run_theta.sh
-  echo 'aprun -n $TOTAL_RANKS -N $RANKS_PER_NODE ./nek5000' >> run_theta.sh
-  chmod +x run_theta.sh
+# create a runfile to help with running on polaris
+if [ ! -e "run_polaris.sh" ]; then
+  echo '#!/bin/bash' >> run_polaris.sh
+  echo 'source /grand/insitu/polaris/sourceme' >> run_polaris.sh
+  echo './start_jupyter.sh' >> run_polaris.sh
+  echo 'NODES=`wc -l < $PBS_NODEFILE`' >> run_polaris.sh
+  echo 'RANKS_PER_NODE=32' >> run_polaris.sh
+  echo 'TOTAL_RANKS=$(( $NODES * $RANKS_PER_NODE ))' >> run_polaris.sh
+  echo 'mpiexec -n $TOTAL_RANKS -ppn $RANKS_PER_NODE ./nek5000' >> run_polaris.sh
+  chmod +x run_polaris.sh
 fi
 
 exit 0

@@ -356,7 +356,7 @@ if [ $ASCENT -ne 0 ]; then
    echo "ASCENT_DIR = ($ASCENT_DIR)"
 
    NEK_ASCENT_LIB="$SOURCE_ROOT_ASCENT/lib"
-   ASCENT_LFLAGS="-L$NEK_ASCENT_LIB -lnekascent -lstdc++"
+   ASCENT_LFLAGS="-L$NEK_ASCENT_LIB -lnekascent -lstdc++ -L/opt/cray/pe/gcc/11.2.0/snos/lib"
 
   sed -e "s/^ASCENT[ ]*=.*/ASCENT:=${ASCENT}/" \
        -e "s:^ASCENT_LFLAGS[ ]*=.*:ASCENT_LFLAGS\:=${ASCENT_LFLAGS}:" \

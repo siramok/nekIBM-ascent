@@ -992,7 +992,6 @@ c
 
                cflm = cflr + cfls
                cfl  = max(cfl,cflm)
-
                cflf(i,j,1,e) = cflm
 
             enddo
@@ -1001,7 +1000,6 @@ c
       endif
 c
       cfl = glmax(cfl,1)
-c
       return
       end
 c-----------------------------------------------------------------------

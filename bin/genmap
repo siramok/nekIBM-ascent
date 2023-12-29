@@ -1,3 +1,1 @@
-module swap PrgEnv-intel PrgEnv-gnu
 genmap_bin
-module swap PrgEnv-gnu PrgEnv-intel

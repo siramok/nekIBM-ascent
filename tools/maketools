@@ -5,13 +5,14 @@
 
 # binary path
 #bin_nek_tools=`cd ../bin && pwd`
+source ../../sourceme
 
 # Fortran compiler
-FC="gfortran"
-#FFLAGS=""
+FC=$(which ftn)
+FFLAGS="-std=legacy -mcmodel=medium -fallow-argument-mismatch"
 
 # C compiler
-CC="gcc"
+CC=$(which cc)
 #CFLAGS=""
 
 # linking flags

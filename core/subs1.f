@@ -270,6 +270,7 @@ C
          DT = 0.001
          IF(NIO.EQ.0)WRITE (6,*) 'WARNING: Set DT=0.001 (arbitrarily)'
       endif
+
 C
 C     Check if final time (user specified) has been reached.
 C
@@ -310,7 +311,6 @@ c
          if (nid.eq.0) write(6,*) 'CFL, Ctarg!',courno,ctarg
          call emerxit
       endif
-
 
       return
       end
