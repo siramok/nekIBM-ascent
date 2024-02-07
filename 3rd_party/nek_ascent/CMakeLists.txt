@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.9)
 project(NekAscent)
 
-list(APPEND CMAKE_MODULE_PATH "/grand/insitu/polaris/ascent/scripts/build_ascent/install/ascent-develop")
-list(APPEND CMAKE_MODULE_PATH "/grand/insitu/polaris/ascent/scripts/build_ascent/install/ascent-develop/lib/cmake/ascent")
+list(APPEND CMAKE_MODULE_PATH "~/ascent-bidirectional/ascent/scripts/build_ascent/install/ascent-develop")
+list(APPEND CMAKE_MODULE_PATH "~/ascent-bidirectional/ascent/scripts/build_ascent/install/ascent-develop/lib/cmake/ascent")
 
 find_package(MPI REQUIRED)
 find_package(Ascent REQUIRED)

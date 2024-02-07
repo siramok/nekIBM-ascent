@@ -5,7 +5,7 @@
 
 # binary path
 #bin_nek_tools=`cd ../bin && pwd`
-source ../../sourceme
+source ~/ascent-bidirectional/sourceme
 
 # Fortran compiler
 FC=$(which ftn)

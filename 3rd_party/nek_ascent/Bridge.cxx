@@ -1,7 +1,13 @@
-#include "Bridge.h"
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <random>
+#include <sstream>
+#include <optional>
 #include <unistd.h>
 #include <vector>
-#include <iostream>
+
+#include "Bridge.h"
 
 void ascent_setup(MPI_Comm *comm)
 {
@@ -12,6 +18,7 @@ void ascent_setup(MPI_Comm *comm)
     register_void_callback("get_dt", get_dt);
     register_void_callback("increase_dt", increase_dt);
     register_void_callback("decrease_dt", decrease_dt);
+    register_void_callback("reduce_particles", reduce_particles);
 }
 
 void ascent_update(int *istep, double *time, int* ndim, int *nelt, int *nelv, int *n, int *lr, int *wdsize,
@@ -201,4 +208,94 @@ void increase_dt(conduit::Node &params, conduit::Node &output)
 void decrease_dt(conduit::Node &params, conduit::Node &output)
 {
     nek_ascent_decrease_dt_();
+}
+
+void reduce_particles(conduit::Node &params, conduit::Node &output)
+{
+    const std::string &inputFilename = params["inputFilename"].as_string();
+    const std::string &outputFilename = params["outputFilename"].as_string();
+    float removalPercentage = params["removalPercentage"].to_uint8();
+    int seed = 0;
+    // if (params["seed"].has_path())
+    // {
+    //     seed = params["seed"].value();
+    // } else {
+        
+    // }
+
+    if (outputFilename == "particles.dat") {
+        std::cerr << "Error: Output filename cannot be 'particles.dat' to protect the original data file." << std::endl;
+        return;
+    }
+
+    std::ifstream inputFile(inputFilename);
+    std::ofstream outputFile(outputFilename);
+    std::string line;
+    std::vector<std::string> lines;
+    int particleCount = 0;
+
+    if (!inputFile.is_open()) {
+        std::cerr << "Unable to open file: " << inputFilename << std::endl;
+        return;
+    }
+
+    // Read the header
+    getline(inputFile, line);
+    std::stringstream ss(line);
+    ss >> particleCount;  // Assuming the first number is the particle count
+    lines.push_back(line); // Add header to lines
+
+    // Read particle data
+    while (getline(inputFile, line)) {
+        lines.push_back(line);
+    }
+    inputFile.close();
+
+    // Initialize random number generator
+    std::mt19937 gen;
+    gen.seed(seed);
+    // if (seed) {
+        
+    // } else {
+    //     std::random_device rd;
+    //     gen.seed(rd());
+    // }
+    std::uniform_real_distribution<> dis(0, 1);
+
+    // Randomly remove lines
+    for (int i = 1; i < lines.size(); ) {
+        if (dis(gen) < removalPercentage) {
+            lines.erase(lines.begin() + i);
+            particleCount--;
+        } else {
+            ++i;
+        }
+    }
+
+    // Renumber particle identifiers
+    for (int i = 1; i <= particleCount; ++i) {
+        std::stringstream lineStream(lines[i]);
+        std::string particleData;
+        getline(lineStream, particleData, '\t'); // Skip old number
+        getline(lineStream, particleData); // Get the rest of the line
+        lines[i] = std::to_string(i) + '\t' + particleData;
+    }
+
+    // Update header with new particle count and first particle data (if available)
+    if (lines.size() > 1) {
+        std::stringstream firstParticleStream(lines[1]);
+        std::string firstParticleData;
+        getline(firstParticleStream, firstParticleData, '\t'); // Skip old number
+        getline(firstParticleStream, firstParticleData); // Get the rest of the line
+
+        std::stringstream newHeader;
+        newHeader << particleCount << '\t' << firstParticleData;
+        lines[0] = newHeader.str();
+    }
+
+    // Write to new file
+    for (const auto& l : lines) {
+        outputFile << l << "\n";
+    }
+    outputFile.close();
 }

@@ -2,10 +2,10 @@
 #-------------------------------------------------------------------------------
 # Nek5000 config file
 #-------------------------------------------------------------------------------
-source /grand/insitu/polaris/sourceme
+source ~/ascent-bidirectional/sourceme
 
 # source path 
-SOURCE_ROOT=/grand/insitu/polaris/nekIBM-ascent
+SOURCE_ROOT=~/ascent-bidirectional/nekIBM-ascent
 
 # Fortran/C compiler
 FC="ftn"
@@ -21,7 +21,7 @@ PPLIST="LPM"
 
 # Ascent cmake directory
 ASCENT=1
-ASCENT_DIR="/grand/insitu/polaris/ascent/scripts/build_ascent/install/ascent-develop/lib/cmake/ascent"
+ASCENT_DIR="~/ascent-bidirectional/ascent/scripts/build_ascent/install/ascent-develop/lib/cmake/ascent"
 
 # optional compiler flags
 FFLAGS="-std=legacy -mcmodel=medium -fallow-argument-mismatch"
@@ -58,7 +58,7 @@ set -e
 mver=17.0.4
 
 # set defaults
-: ${SOURCE_ROOT:="/grand/insitu/polaris/nekIBM-ascent"}
+: ${SOURCE_ROOT:="~/ascent-bidirectional/nekIBM-ascent"}
 : ${FC:="mpif77"}
 : ${CC:="mpicc"}
 : ${MPI:=1}
@@ -94,7 +94,7 @@ cp -R $SOURCE_ROOT/3rd_party/nek_ascent/runtime_files/* .
 # create a runfile to help with running on polaris
 if [ ! -e "run_polaris.sh" ]; then
   echo '#!/bin/bash' >> run_polaris.sh
-  echo 'source /grand/insitu/polaris/sourceme' >> run_polaris.sh
+  echo '~/ascent-bidirectional/sourceme' >> run_polaris.sh
   echo './start_jupyter.sh' >> run_polaris.sh
   echo 'NODES=`wc -l < $PBS_NODEFILE`' >> run_polaris.sh
   echo 'RANKS_PER_NODE=32' >> run_polaris.sh

@@ -45,6 +45,7 @@ extern "C"
     void get_dt(conduit::Node &params, conduit::Node &output);
     void increase_dt(conduit::Node &params, conduit::Node &output);
     void decrease_dt(conduit::Node &params, conduit::Node &output);
+    void reduce_particles(conduit::Node &params, conduit::Node &output);
 
 #ifdef __cplusplus
 } // extern "C"
