@@ -94,7 +94,7 @@ cp -R $SOURCE_ROOT/3rd_party/nek_ascent/runtime_files/* .
 # create a runfile to help with running on polaris
 if [ ! -e "run_polaris.sh" ]; then
   echo '#!/bin/bash' >> run_polaris.sh
-  echo '~/ascent-bidirectional/sourceme' >> run_polaris.sh
+  echo 'source ~/ascent-bidirectional/sourceme' >> run_polaris.sh
   echo './start_jupyter.sh' >> run_polaris.sh
   echo 'NODES=`wc -l < $PBS_NODEFILE`' >> run_polaris.sh
   echo 'RANKS_PER_NODE=32' >> run_polaris.sh
