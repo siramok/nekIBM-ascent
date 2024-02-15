@@ -42,6 +42,7 @@ extern "C"
     void register_bool_callback(std::string callback_name, bool (*callback_function)(void));
 
     // Callbacks
+    void start_terminal_interface(conduit::Node &params, conduit::Node &output);
     void get_dt(conduit::Node &params, conduit::Node &output);
     void increase_dt(conduit::Node &params, conduit::Node &output);
     void decrease_dt(conduit::Node &params, conduit::Node &output);
