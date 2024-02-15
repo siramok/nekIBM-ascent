@@ -1,3 +1,4 @@
+#include <functional>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -9,12 +10,271 @@
 
 #include "Bridge.h"
 
+class SteeringInterface
+{
+public:
+    SteeringInterface()
+    {
+        // Commands
+        commands["exit"] = [this]()
+        { this->exitShell(); };
+        commands["help"] = [this]()
+        { this->printHelp(); };
+        commands["list"] = [this]()
+        { this->listCallbacks(); };
+        commands["param"] = [this]()
+        { this->printParams(); };
+        commands["run"] = [this]()
+        { this->doNothing(); };
+
+        // Descriptions
+        descriptions["exit"] = "Exit the shell.";
+        descriptions["help"] = "Print this help message.";
+        descriptions["list"] = "List all registered Ascent callbacks.";
+        descriptions["param"] = "Prints the current parameters. Can set, modify, or parameters with 'param add|edit|remove key value.";
+        descriptions["run"] = "Run an Ascent callback with 'run my_callback'.";
+
+        m_rank = 0;
+        params["rank"] = m_rank;
+    }
+
+    SteeringInterface(int rank)
+    {
+        // Commands
+        commands["exit"] = [this]()
+        { this->exitShell(); };
+        commands["help"] = [this]()
+        { this->printHelp(); };
+        commands["list"] = [this]()
+        { this->listCallbacks(); };
+        commands["param"] = [this]()
+        { this->printParams(); };
+        commands["run"] = [this]()
+        { this->doNothing(); };
+
+        // Descriptions
+        descriptions["exit"] = "Exit the interactive steering interface.";
+        descriptions["help"] = "Print this help message.";
+        descriptions["list"] = "List all registered Ascent callbacks.";
+        descriptions["param"] = "Prints the current parameters. Can set or modify parameters with 'param key value' or reset them with 'param reset'.";
+        descriptions["run"] = "Run an Ascent callback with 'run my_callback'.";
+
+        m_rank = rank;
+        params["rank"] = m_rank;
+    }
+
+    void run()
+    {
+        if (m_rank == 0)
+        {
+            std::cout << "\n-------------Entering interactive steering mode-------------" << std::endl;
+            std::cout << "Type 'help' to see available commands\n"
+                      << std::endl;
+        }
+
+        std::string input;
+        while (running)
+        {
+            if (m_rank == 0)
+            {
+                std::getline(std::cin, input);
+            }
+
+            int input_size = input.size();
+            MPI_Bcast(&input_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
+            if (m_rank != 0)
+            {
+                input.resize(input_size);
+            }
+            MPI_Bcast(const_cast<char *>(input.data()), input_size, MPI_CHAR, 0, MPI_COMM_WORLD);
+
+            std::istringstream iss(input);
+            std::string cmd;
+            iss >> cmd;
+            std::vector<std::string> tokens;
+            std::string token;
+            while (iss >> token)
+            {
+                tokens.push_back(token);
+            }
+            parseInput(cmd, tokens);
+        }
+        if (m_rank == 0)
+        {
+            std::cout << "\n-------------Exiting interactive steering mode-------------" << std::endl;
+        }
+    }
+
+private:
+    std::map<std::string, std::function<void()>> commands;
+    std::map<std::string, std::string> descriptions;
+    conduit::Node params;
+    conduit::Node output;
+    int m_rank;
+    bool running = true;
+
+    void doNothing()
+    {
+        if (m_rank == 0)
+        {
+            std::cout << std::endl;
+        }
+    }
+
+    void exitShell()
+    {
+        running = false;
+    }
+
+    void parseInput(std::string cmd, std::vector<std::string> args)
+    {
+        if (commands.find(cmd) == commands.end())
+        {
+            if (m_rank == 0)
+            {
+                std::cout << "\nUnknown command: " << cmd << std::endl;
+                printHelp();
+            }
+            return;
+        }
+
+        if (cmd == "run" && !args.empty())
+        {
+            runCallback(args);
+        }
+        else if (cmd == "param" && !args.empty())
+        {
+            modifyParams(args);
+        }
+        else
+        {
+            commands[cmd]();
+        }
+    }
+
+    void listCallbacks()
+    {
+        if (m_rank == 0)
+        {
+            std::cout << "\nAvailable callbacks:" << std::endl;
+            std::vector<std::string> callbacks = ascent::get_registered_callbacks();
+            for (const auto &callback : callbacks)
+            {
+                std::cout << callback << std::endl;
+            }
+            std::cout << std::endl;
+        }
+    }
+
+    void modifyParams(std::vector<std::string> args)
+    {
+        if (args.size() != 2)
+        {
+            if (m_rank == 0)
+            {
+                std::cout << std::endl;
+            }
+            return;
+        }
+
+        std::string key = args[0];
+        std::string value = args[1];
+
+        if (key == "reset")
+        {
+            params.reset();
+            params["rank"] = m_rank;
+        }
+        else if (key == "delete")
+        {
+            params[value].reset();
+        }
+        else if (args.size() == 2)
+        {
+            try
+            {
+                int possible_int = std::stoi(value);
+                params[key] = possible_int;
+            }
+            catch (const std::exception &e)
+            {
+            }
+            try
+            {
+                float possible_float = std::stof(value);
+                params[key] = possible_float;
+            }
+            catch (const std::exception &e)
+            {
+            }
+            try
+            {
+                double possible_double = std::stod(value);
+                params[key] = possible_double;
+            }
+            catch (const std::exception &e)
+            {
+                params[key] = value;
+            }
+        }
+
+        printParams();
+    }
+
+    void printHelp()
+    {
+        if (m_rank == 0)
+        {
+            std::cout << "\nAvailable commands:" << std::endl;
+            for (const auto &cmd : descriptions)
+            {
+                std::cout << cmd.first << "\t-   " << cmd.second << std::endl;
+            }
+            std::cout << std::endl;
+        }
+    }
+
+    void printParams()
+    {
+        if (m_rank == 0)
+        {
+            std::cout << "\nCurrent params:";
+            params.print();
+        }
+    }
+
+    void runCallback(std::vector<std::string> args)
+    {
+        try
+        {
+            std::string callback = args[0];
+            if (m_rank == 0)
+            {
+                std::cout << "\nRunning callback: " << callback << std::endl;
+            }
+            ascent::execute_callback(callback, params, output);
+            MPI_Barrier(MPI_COMM_WORLD);
+            if (m_rank == 0)
+            {
+                std::cout << "\n"
+                          << callback << " output:";
+                output.print();
+            }
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << e.what() << std::endl;
+        }
+    }
+};
+
 void ascent_setup(MPI_Comm *comm)
 {
     conduit::Node ascent_opts;
     ascent_opts["mpi_comm"] = *comm;
     mAscent.open(ascent_opts);
 
+    register_void_callback("start_terminal_interface", start_terminal_interface);
     register_void_callback("get_dt", get_dt);
     register_void_callback("increase_dt", increase_dt);
     register_void_callback("decrease_dt", decrease_dt);
@@ -127,19 +387,6 @@ void ascent_update(int *istep, double *time, int* ndim, int *nelt, int *nelv, in
 
     if (rank == 0)
     {
-        // std::cout << "dimensions: " << dimensions << std::endl;
-        // std::cout << "t_mesh_size: " << t_mesh_size << std::endl;
-        // std::cout << "v_mesh_size: " << v_mesh_size << std::endl;
-        // std::cout << "velocity_x_size: " << velocity_x_size << std::endl;
-        // std::cout << "velocity_y_size: " << velocity_y_size << std::endl;
-        // std::cout << "velocity_z_size: " << velocity_z_size << std::endl;
-        // std::cout << "pressure_x_size: " << pressure_x_size << std::endl;
-        // std::cout << "pressure_y_size: " << pressure_y_size << std::endl;
-        // std::cout << "pressure_z_size: " << pressure_z_size << std::endl;
-        // std::cout << "velocity_mesh_size: " << velocity_mesh_size << std::endl;
-        // std::cout << "velocity_array_size: " << velocity_array_size << std::endl;
-        // std::cout << "pressure_mesh_size: " << pressure_mesh_size << std::endl;
-
         conduit::Node verify_info;
         if(!conduit::blueprint::mesh::verify(data,verify_info))
         {
@@ -152,21 +399,7 @@ void ascent_update(int *istep, double *time, int* ndim, int *nelt, int *nelv, in
     conduit::Node actions;
     mAscent.execute(actions);
 
-    if (rank == 0)
-    {
-        std::cout << "Invoking get_dt" << std::endl;
-        conduit::Node params;
-        conduit::Node output;
-        get_dt(params, output);
-    }
-
-    // if (*istep == 3) {
-    //     conduit::Node params;
-    //     conduit::Node output;
-    //     for (int i = 0; i < 95; i++) {
-    //         decrease_dt(params, output);
-    //     }
-    // }
+    
 
     if (rank == 0) {
         std::cout << "End of Ascent Update" << std::endl;
@@ -195,6 +428,14 @@ extern "C" void nek_ascent_get_dt_();
 extern "C" void nek_ascent_increase_dt_();
 extern "C" void nek_ascent_decrease_dt_();
 
+void start_terminal_interface(conduit::Node &params, conduit::Node &output)
+{
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    SteeringInterface steering(rank);
+    steering.run();
+}
+
 void get_dt(conduit::Node &params, conduit::Node &output)
 {
     nek_ascent_get_dt_();
@@ -216,12 +457,6 @@ void reduce_particles(conduit::Node &params, conduit::Node &output)
     const std::string &outputFilename = params["outputFilename"].as_string();
     float removalPercentage = params["removalPercentage"].to_uint8();
     int seed = 0;
-    // if (params["seed"].has_path())
-    // {
-    //     seed = params["seed"].value();
-    // } else {
-        
-    // }
 
     if (outputFilename == "particles.dat") {
         std::cerr << "Error: Output filename cannot be 'particles.dat' to protect the original data file." << std::endl;
