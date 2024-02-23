@@ -35,7 +35,6 @@ public:
         descriptions["run"] = "Run an Ascent callback with 'run my_callback'.";
 
         m_rank = 0;
-        params["rank"] = m_rank;
     }
 
     SteeringInterface(int rank)
@@ -60,7 +59,6 @@ public:
         descriptions["run"] = "Run an Ascent callback with 'run my_callback'.";
 
         m_rank = rank;
-        params["rank"] = m_rank;
     }
 
     void run()
@@ -77,6 +75,7 @@ public:
         {
             if (m_rank == 0)
             {
+                std::cout << "-> " << std::flush;
                 std::getline(std::cin, input);
             }
 
@@ -168,53 +167,51 @@ private:
 
     void modifyParams(std::vector<std::string> args)
     {
-        if (args.size() != 2)
+        std::string cmd;
+        if (args.size() > 0)
         {
-            if (m_rank == 0)
-            {
-                std::cout << std::endl;
-            }
-            return;
+            cmd = args[0];
+        }
+        std::string arg;
+        if (args.size() > 1)
+        {
+            arg = args[1];
         }
 
-        std::string key = args[0];
-        std::string value = args[1];
-
-        if (key == "reset")
+        if (cmd == "reset")
         {
             params.reset();
-            params["rank"] = m_rank;
         }
-        else if (key == "delete")
+        else if (cmd == "delete")
         {
-            params[value].reset();
+            params[arg].reset();
         }
-        else if (args.size() == 2)
+        else if (!arg.empty())
         {
             try
             {
-                int possible_int = std::stoi(value);
-                params[key] = possible_int;
+                int possible_int = std::stoi(arg);
+                params[cmd] = possible_int;
             }
             catch (const std::exception &e)
             {
             }
             try
             {
-                float possible_float = std::stof(value);
-                params[key] = possible_float;
+                float possible_float = std::stof(arg);
+                params[cmd] = possible_float;
             }
             catch (const std::exception &e)
             {
             }
             try
             {
-                double possible_double = std::stod(value);
-                params[key] = possible_double;
+                double possible_double = std::stod(arg);
+                params[cmd] = possible_double;
             }
             catch (const std::exception &e)
             {
-                params[key] = value;
+                params[cmd] = arg;
             }
         }
 
@@ -240,6 +237,7 @@ private:
         {
             std::cout << "\nCurrent params:";
             params.print();
+            std::cout << std::endl;
         }
     }
 
@@ -250,7 +248,8 @@ private:
             std::string callback = args[0];
             if (m_rank == 0)
             {
-                std::cout << "\nRunning callback: " << callback << std::endl;
+                std::cout << "\nRunning callback: " << callback << "\n"
+                          << std::endl;
             }
             ascent::execute_callback(callback, params, output);
             MPI_Barrier(MPI_COMM_WORLD);
@@ -259,6 +258,7 @@ private:
                 std::cout << "\n"
                           << callback << " output:";
                 output.print();
+                std::cout << std::endl;
             }
         }
         catch (const std::exception &e)
@@ -292,7 +292,7 @@ void ascent_update(int *istep, double *time, int* ndim, int *nelt, int *nelv, in
     
     if (rank == 0)
     {
-        std::cout << "Start of Ascent Update" << std::endl;
+        std::cout << "-------------Start of Ascent Update-------------" << std::endl;
     }
 
     int dimensions = *ndim;
@@ -384,27 +384,22 @@ void ascent_update(int *istep, double *time, int* ndim, int *nelt, int *nelv, in
     data["fields/velocity/values/v"].set_external(vy, velocity_array_size);
     data["fields/velocity/values/w"].set_external(vz, velocity_array_size);
 
-
-    if (rank == 0)
+    conduit::Node verify_info;
+    if(!conduit::blueprint::mesh::verify(data, verify_info))
     {
-        conduit::Node verify_info;
-        if(!conduit::blueprint::mesh::verify(data,verify_info))
+        if (rank == 0)
         {
             CONDUIT_INFO("blueprint verify failed!" + verify_info.to_yaml());
         }
+    } else {
+        mAscent.publish(data);
+        conduit::Node actions;
+        mAscent.execute(actions);
     }
-
-    mAscent.publish(data);
-
-    conduit::Node actions;
-    mAscent.execute(actions);
-
-    
 
     if (rank == 0) {
-        std::cout << "End of Ascent Update" << std::endl;
+        std::cout << "-------------End of Ascent Update-------------" << std::endl;
     }
-
 }
 
 void ascent_finalize()
@@ -453,13 +448,93 @@ void decrease_dt(conduit::Node &params, conduit::Node &output)
 
 void reduce_particles(conduit::Node &params, conduit::Node &output)
 {
-    const std::string &inputFilename = params["inputFilename"].as_string();
-    const std::string &outputFilename = params["outputFilename"].as_string();
-    float removalPercentage = params["removalPercentage"].to_uint8();
-    int seed = 0;
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    if (outputFilename == "particles.dat") {
+    if (rank != 0)
+    {
+        return;
+    }
+
+    bool success = true;
+    std::string inputFilename;
+    std::string outputFilename;
+    float removalPercentage;
+
+    if (!params.has_path("inputFilename"))
+    {
+        std::cout << "MissingParam: inputFilename is a required parameter but was not found" << std::endl;
+        success = false;
+    }
+    else
+    {
+        try
+        {
+            inputFilename = params["inputFilename"].as_string();
+        }
+        catch (const std::exception &e)
+        {
+            std::cout << "ParamError: inputFilename must be a string" << std::endl;
+            success = false;
+        }
+    }
+
+    if (!params.has_path("outputFilename"))
+    {
+        std::cout << "MissingParam: outputFilename is a required parameter but was not found" << std::endl;
+        success = false;
+    }
+    else
+    {
+        try
+        {
+            outputFilename = params["outputFilename"].as_string();
+        }
+        catch (const std::exception &e)
+        {
+            std::cout << "ParamError: outputFilename must be a string" << std::endl;
+            success = false;
+        }
+    }
+
+    if (!params.has_path("removalPercentage"))
+    {
+        std::cout << "MissingParam: removalPercentage is a required parameter but was not found" << std::endl;
+        success = false;
+    }
+    else
+    {
+        try
+        {
+            removalPercentage = params["removalPercentage"].as_float64();
+            if (removalPercentage < 0 || removalPercentage > 1)
+            {
+                std::cout << "ParamError: removalPercentage must be a decimal number between 0 and 1" << std::endl;
+                success = false;
+            }
+        }
+        catch (const std::exception &e)
+        {
+            std::cout << "ParamError: removalPercentage must be numeric" << std::endl;
+            success = false;
+        }
+    }
+
+    if (!success)
+    {
+        output["success"] = "no";
+        return;
+    }
+
+    std::cout << "Creating a new particle file using the following parameters:" << std::endl;
+    std::cout << "inputFilename = " << inputFilename << std::endl;
+    std::cout << "outputFilename = " << outputFilename << std::endl;
+    std::cout << "removalPercentage = " << removalPercentage << std::endl;
+
+    if (outputFilename == "particles.dat")
+    {
         std::cerr << "Error: Output filename cannot be 'particles.dat' to protect the original data file." << std::endl;
+        output["success"] = "no";
         return;
     }
 
@@ -468,20 +543,24 @@ void reduce_particles(conduit::Node &params, conduit::Node &output)
     std::string line;
     std::vector<std::string> lines;
     int particleCount = 0;
+    int seed = 42;
 
-    if (!inputFile.is_open()) {
+    if (!inputFile.is_open())
+    {
         std::cerr << "Unable to open file: " << inputFilename << std::endl;
+        output["success"] = "no";
         return;
     }
 
     // Read the header
     getline(inputFile, line);
     std::stringstream ss(line);
-    ss >> particleCount;  // Assuming the first number is the particle count
-    lines.push_back(line); // Add header to lines
+    ss >> particleCount;
+    lines.push_back(line);
 
     // Read particle data
-    while (getline(inputFile, line)) {
+    while (getline(inputFile, line))
+    {
         lines.push_back(line);
     }
     inputFile.close();
@@ -489,39 +568,39 @@ void reduce_particles(conduit::Node &params, conduit::Node &output)
     // Initialize random number generator
     std::mt19937 gen;
     gen.seed(seed);
-    // if (seed) {
-        
-    // } else {
-    //     std::random_device rd;
-    //     gen.seed(rd());
-    // }
     std::uniform_real_distribution<> dis(0, 1);
 
     // Randomly remove lines
-    for (int i = 1; i < lines.size(); ) {
-        if (dis(gen) < removalPercentage) {
+    for (int i = 1; i < lines.size();)
+    {
+        if (dis(gen) < removalPercentage)
+        {
             lines.erase(lines.begin() + i);
             particleCount--;
-        } else {
+        }
+        else
+        {
             ++i;
         }
     }
 
-    // Renumber particle identifiers
-    for (int i = 1; i <= particleCount; ++i) {
+    // Renumber particle ids
+    for (int i = 1; i <= particleCount; ++i)
+    {
         std::stringstream lineStream(lines[i]);
         std::string particleData;
-        getline(lineStream, particleData, '\t'); // Skip old number
-        getline(lineStream, particleData); // Get the rest of the line
+        getline(lineStream, particleData, '\t');
+        getline(lineStream, particleData);
         lines[i] = std::to_string(i) + '\t' + particleData;
     }
 
     // Update header with new particle count and first particle data (if available)
-    if (lines.size() > 1) {
+    if (lines.size() > 1)
+    {
         std::stringstream firstParticleStream(lines[1]);
         std::string firstParticleData;
-        getline(firstParticleStream, firstParticleData, '\t'); // Skip old number
-        getline(firstParticleStream, firstParticleData); // Get the rest of the line
+        getline(firstParticleStream, firstParticleData, '\t');
+        getline(firstParticleStream, firstParticleData);
 
         std::stringstream newHeader;
         newHeader << particleCount << '\t' << firstParticleData;
@@ -529,8 +608,11 @@ void reduce_particles(conduit::Node &params, conduit::Node &output)
     }
 
     // Write to new file
-    for (const auto& l : lines) {
+    for (const auto &l : lines)
+    {
         outputFile << l << "\n";
     }
     outputFile.close();
+
+    output["success"] = "yes";
 }
