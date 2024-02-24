@@ -65,7 +65,7 @@ public:
     {
         if (m_rank == 0)
         {
-            std::cout << "\n-------------Entering interactive steering mode-------------" << std::endl;
+            std::cout << "-------------Entering interactive steering mode-------------" << std::endl;
             std::cout << "Type 'help' to see available commands\n"
                       << std::endl;
         }
@@ -580,7 +580,7 @@ void reduce_particles(conduit::Node &params, conduit::Node &output)
         }
         else
         {
-            ++i;
+            i++;
         }
     }
 

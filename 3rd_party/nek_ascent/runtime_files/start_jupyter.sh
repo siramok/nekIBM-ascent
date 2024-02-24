@@ -14,6 +14,11 @@ fi
 
 # Print the SSH command
 echo ""
-echo "Run this in a local shell to forward the Jupyter server to your local machine"
+echo "Copy and run this command in a local terminal to forward the Jupyter server from the compute node to your local machine"
 echo "ssh -v -N -L 8888:$(hostname):8888 $USER@polaris.alcf.anl.gov"
 echo "---------------------------------------------------------------------------------"
+
+# Give the user a chance to copy the command
+echo ""
+echo "Waiting 5 seconds before running the simulation..."
+sleep(5)

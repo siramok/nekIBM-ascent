@@ -2,10 +2,12 @@
 #-------------------------------------------------------------------------------
 # Nek5000 config file
 #-------------------------------------------------------------------------------
-source ~/ascent-bidirectional/sourceme
+INSTALL_DIR=~/ascent-bidirectional
+
+source $INSTALL_DIR/sourceme
 
 # source path 
-SOURCE_ROOT=~/ascent-bidirectional/nekIBM-ascent
+SOURCE_ROOT=$INSTALL_DIR/nekIBM-ascent
 
 # Fortran/C compiler
 FC="ftn"
@@ -21,7 +23,7 @@ PPLIST="LPM"
 
 # Ascent cmake directory
 ASCENT=1
-ASCENT_DIR="~/ascent-bidirectional/ascent/scripts/build_ascent/install/ascent-develop/lib/cmake/ascent"
+ASCENT_DIR="$INSTALL_DIR/ascent/scripts/build_ascent/install/ascent-develop/lib/cmake/ascent"
 
 # optional compiler flags
 FFLAGS="-std=legacy -mcmodel=medium -fallow-argument-mismatch"
@@ -58,7 +60,7 @@ set -e
 mver=17.0.4
 
 # set defaults
-: ${SOURCE_ROOT:="~/ascent-bidirectional/nekIBM-ascent"}
+: ${SOURCE_ROOT:="$INSTALL_DIR/nekIBM-ascent"}
 : ${FC:="mpif77"}
 : ${CC:="mpicc"}
 : ${MPI:=1}
@@ -91,16 +93,35 @@ fi
 # copy Ascent runtime files into the cwd
 cp -R $SOURCE_ROOT/3rd_party/nek_ascent/runtime_files/* .
 
-# create a runfile to help with running on polaris
-if [ ! -e "run_polaris.sh" ]; then
-  echo '#!/bin/bash' >> run_polaris.sh
-  echo 'source ~/ascent-bidirectional/sourceme' >> run_polaris.sh
-  echo './start_jupyter.sh' >> run_polaris.sh
-  echo 'NODES=`wc -l < $PBS_NODEFILE`' >> run_polaris.sh
-  echo 'RANKS_PER_NODE=32' >> run_polaris.sh
-  echo 'TOTAL_RANKS=$(( $NODES * $RANKS_PER_NODE ))' >> run_polaris.sh
-  echo 'mpiexec -n $TOTAL_RANKS -ppn $RANKS_PER_NODE ./nek5000' >> run_polaris.sh
-  chmod +x run_polaris.sh
+# Create terminal-interface run script
+if [ ! -e "run_polaris_terminal.sh" ]; then
+cat << EOF > run_polaris_terminal.sh
+#!/bin/bash
+source $INSTALL_DIR/sourceme
+rm ascent_actions.yaml
+cp terminal.yaml ascent_actions.yaml
+NODES=\`wc -l < \$PBS_NODEFILE\`
+RANKS_PER_NODE=32
+TOTAL_RANKS=\$(( \$NODES * \$RANKS_PER_NODE ))
+mpiexec -n \$TOTAL_RANKS -ppn \$RANKS_PER_NODE ./nek5000
+EOF
+chmod +x run_polaris_terminal.sh
+fi
+
+# Create jupyter-interface run script
+if [ ! -e "run_polaris_jupyter.sh" ]; then
+cat << EOF > run_polaris_jupyter.sh
+#!/bin/bash
+source $INSTALL_DIR/sourceme
+rm ascent_actions.yaml
+cp jupyter.yaml ascent_actions.yaml
+./start_jupyter.sh
+NODES=\`wc -l < \$PBS_NODEFILE\`
+RANKS_PER_NODE=32
+TOTAL_RANKS=\$(( \$NODES * \$RANKS_PER_NODE ))
+mpiexec -n \$TOTAL_RANKS -ppn \$RANKS_PER_NODE ./nek5000
+EOF
+chmod +x run_polaris_jupyter.sh
 fi
 
 exit 0
