@@ -21,4 +21,4 @@ echo "--------------------------------------------------------------------------
 # Give the user a chance to copy the command
 echo ""
 echo "Waiting 5 seconds before running the simulation..."
-sleep(5)
+sleep 5
