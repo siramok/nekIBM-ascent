@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include <functional>
 #include <iostream>
 #include <fstream>
@@ -279,17 +280,19 @@ void ascent_setup(MPI_Comm *comm)
     register_void_callback("increase_dt", increase_dt);
     register_void_callback("decrease_dt", decrease_dt);
     register_void_callback("reduce_particles", reduce_particles);
+    register_void_callback("load_new_data", load_new_data);
+    register_void_callback("plot_bins", plot_bins);
 }
 
-void ascent_update(int *istep, double *time, int* ndim, int *nelt, int *nelv, int *n, int *lr, int *wdsize,
-                       int *lx1, int *ly1, int *lz1, double *xm1, double *ym1, double *zm1,
-                       int *lx2, int *ly2, int *lz2, double *xm2, double *ym2, double *zm2,
-                       double *vx, double *vy, double *vz,
-                       int *jx, int *jy, int *jz, int *jv0, double *rpart)
+void ascent_update(int *istep, double *time, int *ndim, int *nelt, int *nelv, int *n, int *lr, int *wdsize,
+                   int *lx1, int *ly1, int *lz1, double *xm1, double *ym1, double *zm1,
+                   int *lx2, int *ly2, int *lz2, double *xm2, double *ym2, double *zm2,
+                   double *vx, double *vy, double *vz,
+                   int *jx, int *jy, int *jz, int *jv0, double *rpart)
 {
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    
+
     if (rank == 0)
     {
         std::cout << "-------------Start of Ascent Update-------------" << std::endl;
@@ -306,24 +309,28 @@ void ascent_update(int *istep, double *time, int* ndim, int *nelt, int *nelv, in
     int velocity_mesh_size = velocity_x_size;
     int velocity_array_size = velocity_x_size;
 
-    if (velocity_y_size > 0) {
+    if (velocity_y_size > 0)
+    {
         velocity_mesh_size *= velocity_z_size;
         velocity_array_size *= velocity_y_size;
     }
 
-    if (velocity_z_size > 0) {
+    if (velocity_z_size > 0)
+    {
         velocity_mesh_size *= velocity_z_size;
         velocity_array_size *= velocity_z_size;
     }
 
-    if (t_mesh_size > 0) {
+    if (t_mesh_size > 0)
+    {
         velocity_mesh_size *= t_mesh_size;
     }
 
-    if (v_mesh_size > 0) {
+    if (v_mesh_size > 0)
+    {
         velocity_array_size *= v_mesh_size;
     }
-    
+
     int pressure_x_size = *lx2;
     int pressure_y_size = *ly2;
     int pressure_z_size = *lz2;
@@ -385,19 +392,22 @@ void ascent_update(int *istep, double *time, int* ndim, int *nelt, int *nelv, in
     data["fields/velocity/values/w"].set_external(vz, velocity_array_size);
 
     conduit::Node verify_info;
-    if(!conduit::blueprint::mesh::verify(data, verify_info))
+    if (!conduit::blueprint::mesh::verify(data, verify_info))
     {
         if (rank == 0)
         {
             CONDUIT_INFO("blueprint verify failed!" + verify_info.to_yaml());
         }
-    } else {
+    }
+    else
+    {
         mAscent.publish(data);
         conduit::Node actions;
         mAscent.execute(actions);
     }
 
-    if (rank == 0) {
+    if (rank == 0)
+    {
         std::cout << "-------------End of Ascent Update-------------" << std::endl;
     }
 }
@@ -422,6 +432,7 @@ void register_bool_callback(std::string callback_name, bool (*callback_function)
 extern "C" void nek_ascent_get_dt_();
 extern "C" void nek_ascent_increase_dt_();
 extern "C" void nek_ascent_decrease_dt_();
+extern "C" void nek_ascent_load_new_data_(const char *filename, int length);
 
 void start_terminal_interface(conduit::Node &params, conduit::Node &output)
 {
@@ -614,5 +625,28 @@ void reduce_particles(conduit::Node &params, conduit::Node &output)
     }
     outputFile.close();
 
+    output["success"] = "yes";
+}
+
+void plot_bins(conduit::Node &params, conduit::Node &output)
+{
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    if (rank == 0)
+    {
+        system("python plot_bins.py");
+    }
+    output["success"] = "yes";
+}
+
+void load_new_data(conduit::Node &params, conduit::Node &output)
+{
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    if (rank == 0)
+    {
+        std::string test_string = "particles1.dat";
+        nek_ascent_load_new_data_(test_string.c_str(), test_string.length());
+    }
     output["success"] = "yes";
 }
