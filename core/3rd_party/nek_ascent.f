@@ -52,9 +52,7 @@ c-----------------------------------------------------------------------
       print *, 'Current DT', param(12)
       end subroutine nek_ascent_get_dt
 c-----------------------------------------------------------------------
-      subroutine nek_ascent_load_new_data(filename, length)
-      character*(*) :: filename
-      integer :: length
-      print *, 'Test string works: ', filename
+      subroutine nek_ascent_load_new_data()
+      call load_fld("particles1.dat")
       end subroutine nek_ascent_load_new_data
 c-----------------------------------------------------------------------

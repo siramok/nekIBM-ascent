@@ -432,7 +432,7 @@ void register_bool_callback(std::string callback_name, bool (*callback_function)
 extern "C" void nek_ascent_get_dt_();
 extern "C" void nek_ascent_increase_dt_();
 extern "C" void nek_ascent_decrease_dt_();
-extern "C" void nek_ascent_load_new_data_(const char *filename, int length);
+extern "C" void nek_ascent_load_new_data_();
 
 void start_terminal_interface(conduit::Node &params, conduit::Node &output)
 {
@@ -469,7 +469,6 @@ void reduce_particles(conduit::Node &params, conduit::Node &output)
 
     bool success = true;
     std::string inputFilename;
-    std::string outputFilename;
     float removalPercentage;
 
     if (!params.has_path("inputFilename"))
@@ -486,24 +485,6 @@ void reduce_particles(conduit::Node &params, conduit::Node &output)
         catch (const std::exception &e)
         {
             std::cout << "ParamError: inputFilename must be a string" << std::endl;
-            success = false;
-        }
-    }
-
-    if (!params.has_path("outputFilename"))
-    {
-        std::cout << "MissingParam: outputFilename is a required parameter but was not found" << std::endl;
-        success = false;
-    }
-    else
-    {
-        try
-        {
-            outputFilename = params["outputFilename"].as_string();
-        }
-        catch (const std::exception &e)
-        {
-            std::cout << "ParamError: outputFilename must be a string" << std::endl;
             success = false;
         }
     }
@@ -539,18 +520,10 @@ void reduce_particles(conduit::Node &params, conduit::Node &output)
 
     std::cout << "Creating a new particle file using the following parameters:" << std::endl;
     std::cout << "inputFilename = " << inputFilename << std::endl;
-    std::cout << "outputFilename = " << outputFilename << std::endl;
     std::cout << "removalPercentage = " << removalPercentage << std::endl;
 
-    if (outputFilename == "particles.dat")
-    {
-        std::cerr << "Error: Output filename cannot be 'particles.dat' to protect the original data file." << std::endl;
-        output["success"] = "no";
-        return;
-    }
-
     std::ifstream inputFile(inputFilename);
-    std::ofstream outputFile(outputFilename);
+    std::ofstream outputFile("particles1.dat");
     std::string line;
     std::vector<std::string> lines;
     int particleCount = 0;
@@ -645,8 +618,7 @@ void load_new_data(conduit::Node &params, conduit::Node &output)
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     if (rank == 0)
     {
-        std::string test_string = "particles1.dat";
-        nek_ascent_load_new_data_(test_string.c_str(), test_string.length());
+        nek_ascent_load_new_data_();
     }
     output["success"] = "yes";
 }
