@@ -8,10 +8,10 @@ except ImportError:
     from yaml import Loader
 
 session = []
-with open(r'ascent_session.yaml') as file:
+with open(r'bin_data.yaml') as file:
   session = yaml.load(file, Loader=Loader)
 
-binning = session['avg_velocity']
+binning = session['avg_z_velocity']
 cycles = list(binning.keys())
 bins = []
 

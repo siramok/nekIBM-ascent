@@ -468,26 +468,7 @@ void reduce_particles(conduit::Node &params, conduit::Node &output)
     }
 
     bool success = true;
-    std::string inputFilename;
     float removalPercentage;
-
-    if (!params.has_path("inputFilename"))
-    {
-        std::cout << "MissingParam: inputFilename is a required parameter but was not found" << std::endl;
-        success = false;
-    }
-    else
-    {
-        try
-        {
-            inputFilename = params["inputFilename"].as_string();
-        }
-        catch (const std::exception &e)
-        {
-            std::cout << "ParamError: inputFilename must be a string" << std::endl;
-            success = false;
-        }
-    }
 
     if (!params.has_path("removalPercentage"))
     {
@@ -519,10 +500,9 @@ void reduce_particles(conduit::Node &params, conduit::Node &output)
     }
 
     std::cout << "Creating a new particle file using the following parameters:" << std::endl;
-    std::cout << "inputFilename = " << inputFilename << std::endl;
     std::cout << "removalPercentage = " << removalPercentage << std::endl;
 
-    std::ifstream inputFile(inputFilename);
+    std::ifstream inputFile("particles-base.dat");
     std::ofstream outputFile("particles1.dat");
     std::string line;
     std::vector<std::string> lines;
@@ -531,7 +511,7 @@ void reduce_particles(conduit::Node &params, conduit::Node &output)
 
     if (!inputFile.is_open())
     {
-        std::cerr << "Unable to open file: " << inputFilename << std::endl;
+        std::cerr << "Unable to open file: particles-base.dat" << std::endl;
         output["success"] = "no";
         return;
     }
@@ -614,11 +594,6 @@ void plot_bins(conduit::Node &params, conduit::Node &output)
 
 void load_new_data(conduit::Node &params, conduit::Node &output)
 {
-    int rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    if (rank == 0)
-    {
-        nek_ascent_load_new_data_();
-    }
+    nek_ascent_load_new_data_();
     output["success"] = "yes";
 }
