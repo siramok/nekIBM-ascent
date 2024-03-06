@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # maximum number of elements
-#MAXNEL=150000
+MAXNEL=300000
 
 # binary path
 #bin_nek_tools=`cd ../bin && pwd`
-source ~/ascent-bidirectional/sourceme
+source ~/ascent-bidirectional/ascent-bidirectional/sourceme
 
 # Fortran compiler
 FC=$(which ftn)

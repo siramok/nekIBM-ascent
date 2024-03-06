@@ -32,7 +32,8 @@ for b in range(0,z_bins):
   z_vals.append(b * z_delta + z_start)
 
 # plot the curve from the last cycle
-plt.plot(z_vals, bins[-1])
-plt.xlabel('z position')
-plt.ylabel('average velocity')
-plt.savefig("binning.png")
+for i, bin in enumerate(bins):
+  plt.plot(z_vals, bins[-1])
+  plt.xlabel('z position')
+  plt.ylabel('average velocity')
+  plt.savefig(f"binning-{i + 1}.png")

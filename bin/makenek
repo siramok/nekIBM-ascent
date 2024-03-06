@@ -105,7 +105,11 @@ cp terminal.yaml ascent_actions.yaml
 NODES=\`wc -l < \$PBS_NODEFILE\`
 RANKS_PER_NODE=32
 TOTAL_RANKS=\$(( \$NODES * \$RANKS_PER_NODE ))
+SECONDS=0
 mpiexec -n \$TOTAL_RANKS -ppn \$RANKS_PER_NODE ./nek5000
+t=\$SECONDS
+printf 'Time taken: %d days, %d minutes\n' "$(( t/86400 ))" "$(( t/60 - 1440*(t/86400) ))"
+
 EOF
 chmod +x run_polaris_terminal.sh
 fi
@@ -123,7 +127,11 @@ cp jupyter.yaml ascent_actions.yaml
 NODES=\`wc -l < \$PBS_NODEFILE\`
 RANKS_PER_NODE=32
 TOTAL_RANKS=\$(( \$NODES * \$RANKS_PER_NODE ))
+SECONDS=0
 mpiexec -n \$TOTAL_RANKS -ppn \$RANKS_PER_NODE ./nek5000
+t=\$SECONDS
+printf 'Time taken: %d days, %d minutes\n' "$(( t/86400 ))" "$(( t/60 - 1440*(t/86400) ))"
+
 EOF
 chmod +x run_polaris_jupyter.sh
 fi

@@ -461,34 +461,33 @@ void reduce_particles(conduit::Node &params, conduit::Node &output)
 {
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
     if (rank != 0)
     {
         return;
     }
 
     bool success = true;
-    float removalPercentage;
+    float voxel_size;
 
-    if (!params.has_path("removalPercentage"))
+    if (!params.has_path("voxel_size"))
     {
-        std::cout << "MissingParam: removalPercentage is a required parameter but was not found" << std::endl;
+        std::cout << "MissingParam: voxel_size is a required parameter but was not found" << std::endl;
         success = false;
     }
     else
     {
         try
         {
-            removalPercentage = params["removalPercentage"].as_float64();
-            if (removalPercentage < 0 || removalPercentage > 1)
+            voxel_size = params["voxel_size"].as_float64();
+            if (voxel_size < 0 || voxel_size > 1)
             {
-                std::cout << "ParamError: removalPercentage must be a decimal number between 0 and 1" << std::endl;
+                std::cout << "ParamError: voxel_size must be a decimal number between 0 and 1" << std::endl;
                 success = false;
             }
         }
         catch (const std::exception &e)
         {
-            std::cout << "ParamError: removalPercentage must be numeric" << std::endl;
+            std::cout << "ParamError: voxel_size must be numeric" << std::endl;
             success = false;
         }
     }
@@ -499,84 +498,8 @@ void reduce_particles(conduit::Node &params, conduit::Node &output)
         return;
     }
 
-    std::cout << "Creating a new particle file using the following parameters:" << std::endl;
-    std::cout << "removalPercentage = " << removalPercentage << std::endl;
-
-    std::ifstream inputFile("particles-base.dat");
-    std::ofstream outputFile("particles1.dat");
-    std::string line;
-    std::vector<std::string> lines;
-    int particleCount = 0;
-    int seed = 42;
-
-    if (!inputFile.is_open())
-    {
-        std::cerr << "Unable to open file: particles-base.dat" << std::endl;
-        output["success"] = "no";
-        return;
-    }
-
-    // Read the header
-    getline(inputFile, line);
-    std::stringstream ss(line);
-    ss >> particleCount;
-    lines.push_back(line);
-
-    // Read particle data
-    while (getline(inputFile, line))
-    {
-        lines.push_back(line);
-    }
-    inputFile.close();
-
-    // Initialize random number generator
-    std::mt19937 gen;
-    gen.seed(seed);
-    std::uniform_real_distribution<> dis(0, 1);
-
-    // Randomly remove lines
-    for (int i = 1; i < lines.size();)
-    {
-        if (dis(gen) < removalPercentage)
-        {
-            lines.erase(lines.begin() + i);
-            particleCount--;
-        }
-        else
-        {
-            i++;
-        }
-    }
-
-    // Renumber particle ids
-    for (int i = 1; i <= particleCount; ++i)
-    {
-        std::stringstream lineStream(lines[i]);
-        std::string particleData;
-        getline(lineStream, particleData, '\t');
-        getline(lineStream, particleData);
-        lines[i] = std::to_string(i) + '\t' + particleData;
-    }
-
-    // Update header with new particle count and first particle data (if available)
-    if (lines.size() > 1)
-    {
-        std::stringstream firstParticleStream(lines[1]);
-        std::string firstParticleData;
-        getline(firstParticleStream, firstParticleData, '\t');
-        getline(firstParticleStream, firstParticleData);
-
-        std::stringstream newHeader;
-        newHeader << particleCount << '\t' << firstParticleData;
-        lines[0] = newHeader.str();
-    }
-
-    // Write to new file
-    for (const auto &l : lines)
-    {
-        outputFile << l << "\n";
-    }
-    outputFile.close();
+    std::string command = "python generate_particles1.py " + std::to_string(voxel_size);
+    std::system(command.c_str());
 
     output["success"] = "yes";
 }

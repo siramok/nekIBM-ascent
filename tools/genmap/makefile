@@ -5,7 +5,7 @@ OBJS = genmap.o byte.o
 all: genmap
 
 genmap:	$(OBJS)
-	$(FC) $(FFLAGS) -o $(prefix)/genmap_bin $(OBJS) $(LDFLAGS)
+	$(FC) $(FFLAGS) -o $(prefix)/genmap $(OBJS) $(LDFLAGS)
 
 clean:
 	@rm -f *.o

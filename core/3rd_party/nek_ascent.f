@@ -53,6 +53,6 @@ c-----------------------------------------------------------------------
       end subroutine nek_ascent_get_dt
 c-----------------------------------------------------------------------
       subroutine nek_ascent_load_new_data()
-      call load_fld("particles1.dat")
+      call load_fld("field.f00001")
       end subroutine nek_ascent_load_new_data
 c-----------------------------------------------------------------------
