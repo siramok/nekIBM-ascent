@@ -26,8 +26,8 @@ ASCENT=1
 ASCENT_DIR="$INSTALL_DIR/ascent/scripts/build_ascent/install/ascent-develop/lib/cmake/ascent"
 
 # optional compiler flags
-FFLAGS="-std=legacy -mcmodel=medium -fallow-argument-mismatch"
-# CFLAGS=""
+FFLAGS="-march=native -std=legacy -mcmodel=large"
+CFLAGS="-march=native"
 
 # optional linking flags
 #USR_LFLAGS+=" -L/usr/lib -lfoo"
