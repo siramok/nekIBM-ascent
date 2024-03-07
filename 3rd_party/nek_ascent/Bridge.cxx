@@ -479,9 +479,9 @@ void reduce_particles(conduit::Node &params, conduit::Node &output)
         try
         {
             voxel_size = params["voxel_size"].as_float64();
-            if (voxel_size < 0 || voxel_size > 1)
+            if (voxel_size < 0)
             {
-                std::cout << "ParamError: voxel_size must be a decimal number between 0 and 1" << std::endl;
+                std::cout << "ParamError: voxel_size must be greater than 0" << std::endl;
                 success = false;
             }
         }

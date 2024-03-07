@@ -55,7 +55,7 @@ def main():
     xyz_downsampled[:, 2] -= np.min(xyz_downsampled[:, 2])
 
     # The float number 'a' as input, representing the diameter in this context
-    a = 0.2  # Example value, adjust as needed or prompt the user
+    a = 0.8E-3  # Example value, adjust as needed or prompt the user
 
     # Calculating required statistics on the adjusted data
     num_points = xyz_downsampled.shape[0]
@@ -67,11 +67,11 @@ def main():
     # Writing to the file, ensuring all floats have exactly five decimal places and are in scientific notation
     with open("particles1.dat", "w") as file:
         # Writing the header with num_points and bounds for x and z
-        file.write(f"{num_points:6d} {xlow:.6E} {xhigh:.6E} {zlow:.6E} {zhigh:.6E}\n")
+        file.write(f"{num_points:6d} {xlow/100.:.6E} {xhigh/100.:.6E} {zlow/100.:.6E} {zhigh/100.:.6E}\n")
 
         # Writing each particle's information, using the adjusted coordinates
         for i, (x, y, z) in enumerate(xyz_downsampled, start=1):
-            file.write(f"{i:6d} {a:.6E} {x:.6E} {y:.6E} {z:.6E}\n")
+            file.write(f"{i:6d} {a:.6E} {x/100.:.6E} {y/100.:.6E} {z/100.:.6E}\n")
 
 
 if __name__ == "__main__":
