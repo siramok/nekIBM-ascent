@@ -1,5 +1,6 @@
 #include <chrono>
 #include <cstdlib>
+#include <filesystem>
 #include <functional>
 #include <iostream>
 #include <fstream>
@@ -190,30 +191,36 @@ private:
         }
         else if (!arg.empty())
         {
-            try
-            {
-                int possible_int = std::stoi(arg);
-                params[cmd] = possible_int;
+            if (arg.size() >= 2 && arg.front() == '"' && arg.back() == '"') {
+                params[cmd] = arg.substr(1, arg.size() - 2);
             }
-            catch (const std::exception &e)
+            else
             {
-            }
-            try
-            {
-                float possible_float = std::stof(arg);
-                params[cmd] = possible_float;
-            }
-            catch (const std::exception &e)
-            {
-            }
-            try
-            {
-                double possible_double = std::stod(arg);
-                params[cmd] = possible_double;
-            }
-            catch (const std::exception &e)
-            {
-                params[cmd] = arg;
+                try
+                {
+                    int possible_int = std::stoi(arg);
+                    params[cmd] = possible_int;
+                }
+                catch (const std::exception &e)
+                {
+                }
+                try
+                {
+                    float possible_float = std::stof(arg);
+                    params[cmd] = possible_float;
+                }
+                catch (const std::exception &e)
+                {
+                }
+                try
+                {
+                    double possible_double = std::stod(arg);
+                    params[cmd] = possible_double;
+                }
+                catch (const std::exception &e)
+                {
+                    params[cmd] = arg;
+                }
             }
         }
 
@@ -280,12 +287,13 @@ void ascent_setup(MPI_Comm *comm)
     mAscent.open(ascent_opts);
 
     register_void_callback("start_terminal_interface", start_terminal_interface);
-    register_void_callback("get_dt", get_dt);
-    register_void_callback("increase_dt", increase_dt);
-    register_void_callback("decrease_dt", decrease_dt);
-    register_void_callback("reduce_particles", reduce_particles);
+    // register_void_callback("get_dt", get_dt);
+    // register_void_callback("increase_dt", increase_dt);
+    // register_void_callback("decrease_dt", decrease_dt);
+    // register_void_callback("reduce_particles", reduce_particles);
     register_void_callback("load_new_data", load_new_data);
-    register_void_callback("plot_statistics", plot_statistics);
+    register_void_callback("swap_data", swap_data);
+    register_void_callback("plot_bins", plot_bins);
 }
 
 void ascent_update(int *istep, double *time, int *ndim, int *nelt, int *nelv, int *n, int *lr, int *wdsize,
@@ -508,7 +516,7 @@ void reduce_particles(conduit::Node &params, conduit::Node &output)
     output["success"] = "yes";
 }
 
-void plot_statistics(conduit::Node &params, conduit::Node &output)
+void plot_bins(conduit::Node &params, conduit::Node &output)
 {
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -524,4 +532,37 @@ void load_new_data(conduit::Node &params, conduit::Node &output)
 {
     nek_ascent_load_new_data_();
     output["success"] = "yes";
+}
+
+void swap_data(conduit::Node &params, conduit::Node &output)
+{
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    if (rank != 0)
+    {
+        return;
+    }
+
+    bool success = true;
+
+    if (!params.has_path("filename"))
+    {
+        std::cout << "MissingParam: filename is a required parameter but was not found" << std::endl;
+        success = false;
+    }
+    else
+    {
+        std::string command = "./swap_data.sh " + params["filename"].as_string();
+        system(command.c_str());
+    }
+
+    if (!success)
+    {
+        output["success"] = "no";
+        return;
+    }
+    else
+    {
+        output["success"] = "yes";
+    }
 }
