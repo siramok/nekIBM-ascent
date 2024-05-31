@@ -43,7 +43,7 @@ SetActiveView(lineChartView1)
 # ----------------------------------------------------------------
 
 # create a new 'Nek5000 Reader'
-uniformnek5000 = Nek5000Reader(registrationName='uniform.nek5000', FileName='/home/siramok/Downloads/uniform.nek5000')
+uniformnek5000 = Nek5000Reader(registrationName='uniform.nek5000', FileName='uniform.nek5000')
 uniformnek5000.PointArrays = ['Velocity', 'Velocity Magnitude', 'Pressure']
 
 # create a new 'Plot Over Line'

@@ -65,7 +65,7 @@ def main():
     zhigh = np.max(xyz_downsampled[:, 2])
 
     # Writing to the file, ensuring all floats have exactly five decimal places and are in scientific notation
-    with open("particles1.dat", "w") as file:
+    with open(f"{args.voxel_size:02}.dat", "w") as file:
         # Writing the header with num_points and bounds for x and z
         file.write(f"{num_points:6d} {xlow/100.:.6E} {xhigh/100.:.6E} {zlow/100.:.6E} {zhigh/100.:.6E}\n")
 

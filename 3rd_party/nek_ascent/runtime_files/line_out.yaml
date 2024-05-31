@@ -1,0 +1,11 @@
+-
+  action: "add_triggers"
+  triggers:
+    t1:
+      params:
+        condition: "1 == 1"
+        actions_file : "get_bins.yaml"
+    t2:
+      params:
+        condition: "1 == 1"
+        actions_file : "plot_bins.yaml"

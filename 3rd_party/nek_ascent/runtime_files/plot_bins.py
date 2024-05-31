@@ -1,39 +1,34 @@
-import yaml #pip install --user pyyaml
-import pandas as pd
+import yaml
 import matplotlib.pyplot as plt
 
-try:
-    from yaml import CLoader as Loader
-except ImportError:
-    from yaml import Loader
+# Load data from YAML file
+file_path = 'bin_data.yaml'
+with open(file_path, 'r') as file:
+    data = yaml.safe_load(file)
 
-session = []
-with open(r'bin_data.yaml') as file:
-  session = yaml.load(file, Loader=Loader)
+timestep = list(data['2d_binning'].keys())[-1]
 
-binning = session['avg_z_velocity']
-cycles = list(binning.keys())
-bins = []
+# Extracting the relevant binned data
+binning_data = data['2d_binning'][timestep]['attrs']['value']['value']
+bin_axes = data['2d_binning'][timestep]['attrs']['bin_axes']['value']['z']
 
-# loop through each cycle and grab the bins
-for cycle in binning.values():
-  bins.append((cycle['attrs']['value']['value']))
+# Extracting num_bins, x_min, and x_max
+num_bins = bin_axes['num_bins']
+x_min = bin_axes['min_val']
+x_max = bin_axes['max_val']
 
-# create the coordinate axis using bin centers
-z_axis = binning[cycles[0]]['attrs']['bin_axes']['value']['z']
-z_min = z_axis['min_val']
-z_max = z_axis['max_val']
-z_bins = z_axis['num_bins']
+# Creating x-axis values based on the bin count and range
+x_values = [x_min + i * (x_max - x_min) / num_bins for i in range(num_bins)]
 
-z_delta = (z_max - z_min) / float(z_bins)
-z_start = z_min + 0.5 * z_delta
-z_vals = []
-for b in range(0,z_bins):
-  z_vals.append(b * z_delta + z_start)
+# Plotting the data as a line plot
+plt.figure(figsize=(10, 6))
+plt.plot(x_values, binning_data, label='Binned Values')
+plt.xlabel('Z axis')
+plt.ylabel('Values')
+plt.title(f'Plot of avg. velocity magnitude along the Z axis for timestep {timestep}')
+plt.legend()
+plt.grid(True)
 
-# plot the curve from the last cycle
-for i, bin in enumerate(bins):
-  plt.plot(z_vals, bins[-1])
-  plt.xlabel('z position')
-  plt.ylabel('average velocity')
-  plt.savefig(f"binning-{i + 1}.png")
+# Save the plot to disk
+output_path = f'binned_velocity_magnitude_{timestep}.png'
+plt.savefig(output_path)

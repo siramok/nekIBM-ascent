@@ -3,17 +3,13 @@
   triggers:
     t1:
       params:
-        condition: "cycle() % 10 == 0"
-        actions_file : "binning.yaml"
+        condition: "1 == 1"
+        actions_file : "field.yaml"
     t2:
       params:
-        condition: "cycle() % 10 == 0"
-        actions_file : "field.yaml"
+        condition: "1 == 1"
+        actions_file : "line_out.yaml"
     t3:
       params:
-        condition: "cycle() % 10 == 0"
-        actions_file : "visnek.yaml"
-    t4:
-      params:
-        condition: "cycle() % 10 == 0"
+        condition: "1 == 1"
         actions_file : "jupyter_interface.yaml"

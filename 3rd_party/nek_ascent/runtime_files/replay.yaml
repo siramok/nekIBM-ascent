@@ -4,5 +4,5 @@
     e1:
       type: "relay"
       params:
-        path: "dimitrios_case_data"
+        path: "lidar_case_data"
         protocol: "blueprint/mesh/hdf5"

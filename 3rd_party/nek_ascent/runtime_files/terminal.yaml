@@ -8,7 +8,7 @@
     t2:
       params:
         condition: "1 == 1"
-        actions_file : "visnek.yaml"
+        actions_file : "line_out.yaml"
     t3:
       params:
         condition: "1 == 1"
