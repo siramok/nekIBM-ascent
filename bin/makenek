@@ -10,9 +10,9 @@ source $INSTALL_DIR/sourceme
 SOURCE_ROOT=$INSTALL_DIR/nekIBM-ascent
 
 # Fortran/C compiler
-FC="ftn"
-CC="cc"
-CXX="CC"
+FC="mpif90"
+# CC="cc"
+# CXX="CC"
 
 # pre-processor list (set to "?" to get a list of available symbols)
 PPLIST="LPM"
@@ -28,6 +28,20 @@ ASCENT_DIR="$INSTALL_DIR/ascent/scripts/build_ascent/install/ascent-develop/lib/
 # optional compiler flags
 FFLAGS="-march=native -std=legacy -mcmodel=large"
 CFLAGS="-march=native"
+
+DIRECTORY="path/to/directory"
+
+if [ -d "$SOURCE_ROOT/3rd_party/nek_ascent/build" ]; then
+  rm -r "$SOURCE_ROOT/3rd_party/nek_ascent/build"
+fi
+
+if [ -d "$SOURCE_ROOT/3rd_party/nek_ascent/include" ]; then
+  rm -r "$SOURCE_ROOT/3rd_party/nek_ascent/include"
+fi
+
+if [ -d "$SOURCE_ROOT/3rd_party/nek_ascent/lib" ]; then
+  rm -r "$SOURCE_ROOT/3rd_party/nek_ascent/lib"
+fi
 
 # optional linking flags
 #USR_LFLAGS+=" -L/usr/lib -lfoo"
@@ -94,26 +108,24 @@ fi
 cp -R $SOURCE_ROOT/3rd_party/nek_ascent/runtime_files/* .
 
 # Create terminal-interface run script
-if [ ! -e "run_polaris_terminal.sh" ]; then
-cat << EOF > run_polaris_terminal.sh
+if [ ! -e "run_improv_terminal.sh" ]; then
+cat << EOF > run_improv_terminal.sh
 #!/bin/bash
-source $INSTALL_DIR/sourceme
+source /home/asewell/ascent-bidirectional/sourceme
 if [ -e "ascent_actions.yaml" ]; then
   rm ascent_actions.yaml
 fi
 cp terminal.yaml ascent_actions.yaml
-NODES=\`wc -l < \$PBS_NODEFILE\`
-RANKS_PER_NODE=32
-TOTAL_RANKS=\$(( \$NODES * \$RANKS_PER_NODE ))
-mpiexec -n \$TOTAL_RANKS -ppn \$RANKS_PER_NODE ./nek5000
+RANKS=\`wc -l < \$PBS_NODEFILE\`
+mpiexec -n \$RANKS ./nek5000
 
 EOF
-chmod +x run_polaris_terminal.sh
+chmod +x run_improv_terminal.sh
 fi
 
 # Create jupyter-interface run script
-if [ ! -e "run_polaris_jupyter.sh" ]; then
-cat << EOF > run_polaris_jupyter.sh
+if [ ! -e "run_improv_jupyter.sh" ]; then
+cat << EOF > run_improv_jupyter.sh
 #!/bin/bash
 source $INSTALL_DIR/sourceme
 if [ -e "ascent_actions.yaml" ]; then
@@ -121,13 +133,11 @@ if [ -e "ascent_actions.yaml" ]; then
 fi
 cp jupyter.yaml ascent_actions.yaml
 ./start_jupyter.sh
-NODES=\`wc -l < \$PBS_NODEFILE\`
-RANKS_PER_NODE=32
-TOTAL_RANKS=\$(( \$NODES * \$RANKS_PER_NODE ))
-mpiexec -n \$TOTAL_RANKS -ppn \$RANKS_PER_NODE ./nek5000
+RANKS=\`wc -l < \$PBS_NODEFILE\`
+mpiexec -n \$RANKS ./nek5000
 
 EOF
-chmod +x run_polaris_jupyter.sh
+chmod +x run_improv_jupyter.sh
 fi
 
 exit 0

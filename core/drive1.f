@@ -213,7 +213,9 @@ c-----------------------------------------------------------------------
 #endif
 #endif
          call prepost (ifoutfld,'his')
-         call nek_ascent_update()
+         if (istep.gt.0 .and. mod(istep, iostep) == 0) then
+            call nek_ascent_update()
+         endif
          call in_situ_check()
          if (lastep .eq. 1) goto 1001
       enddo

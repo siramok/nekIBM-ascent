@@ -1,3 +1,4 @@
+#include <chrono>
 #include <cstdlib>
 #include <functional>
 #include <iostream>
@@ -252,10 +253,13 @@ private:
                 std::cout << "\nRunning callback: " << callback << "\n"
                           << std::endl;
             }
+            // auto start = std::chrono::high_resolution_clock::now();
             ascent::execute_callback(callback, params, output);
             MPI_Barrier(MPI_COMM_WORLD);
+            // auto end = std::chrono::high_resolution_clock::now();
             if (m_rank == 0)
             {
+                // std::cout << "Callback execution time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start) << " seconds" << std::endl;
                 std::cout << "\n"
                           << callback << " output:";
                 output.print();
@@ -272,7 +276,7 @@ private:
 void ascent_setup(MPI_Comm *comm)
 {
     conduit::Node ascent_opts;
-    ascent_opts["mpi_comm"] = *comm;
+    ascent_opts["mpi_comm"] = (long long unsigned int)*comm;
     mAscent.open(ascent_opts);
 
     register_void_callback("start_terminal_interface", start_terminal_interface);
@@ -281,7 +285,7 @@ void ascent_setup(MPI_Comm *comm)
     register_void_callback("decrease_dt", decrease_dt);
     register_void_callback("reduce_particles", reduce_particles);
     register_void_callback("load_new_data", load_new_data);
-    register_void_callback("plot_bins", plot_bins);
+    register_void_callback("plot_statistics", plot_statistics);
 }
 
 void ascent_update(int *istep, double *time, int *ndim, int *nelt, int *nelv, int *n, int *lr, int *wdsize,
@@ -504,13 +508,14 @@ void reduce_particles(conduit::Node &params, conduit::Node &output)
     output["success"] = "yes";
 }
 
-void plot_bins(conduit::Node &params, conduit::Node &output)
+void plot_statistics(conduit::Node &params, conduit::Node &output)
 {
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     if (rank == 0)
     {
-        system("python plot_bins.py");
+        // system("python plot_bins.py");
+        system("module load paraview; pvpython uniform.py");
     }
     output["success"] = "yes";
 }

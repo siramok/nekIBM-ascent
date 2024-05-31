@@ -5,14 +5,14 @@ MAXNEL=300000
 
 # binary path
 #bin_nek_tools=`cd ../bin && pwd`
-source ~/ascent-bidirectional/ascent-bidirectional/sourceme
+source ~/ascent-bidirectional/sourceme
 
 # Fortran compiler
-FC=$(which ftn)
+# FC=$(which ftn)
 FFLAGS="-std=legacy -mcmodel=medium -fallow-argument-mismatch"
 
 # C compiler
-CC=$(which cc)
+# CC=$(which cc)
 #CFLAGS=""
 
 # linking flags

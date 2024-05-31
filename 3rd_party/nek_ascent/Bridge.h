@@ -47,7 +47,7 @@ extern "C"
     void increase_dt(conduit::Node &params, conduit::Node &output);
     void decrease_dt(conduit::Node &params, conduit::Node &output);
     void reduce_particles(conduit::Node &params, conduit::Node &output);
-    void plot_bins(conduit::Node &params, conduit::Node &output);
+    void plot_statistics(conduit::Node &params, conduit::Node &output);
     void load_new_data(conduit::Node &params, conduit::Node &output);
 
 #ifdef __cplusplus
