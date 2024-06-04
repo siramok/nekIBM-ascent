@@ -1,6 +1,10 @@
 import yaml
 import matplotlib.pyplot as plt
 
+particles = 'particles1.dat'
+with open(particles, 'r') as file:
+    num_points = file.readline().split()[0]
+
 # Load data from YAML file
 file_path = 'bin_data.yaml'
 with open(file_path, 'r') as file:
@@ -30,5 +34,5 @@ plt.legend()
 plt.grid(True)
 
 # Save the plot to disk
-output_path = f'binned_velocity_magnitude_{timestep}.png'
+output_path = f'binned_velocity_magnitude_{num_points}_points_{timestep}_step.png'
 plt.savefig(output_path)
