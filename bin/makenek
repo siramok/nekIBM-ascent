@@ -117,7 +117,7 @@ if [ -e "ascent_actions.yaml" ]; then
 fi
 cp terminal.yaml ascent_actions.yaml
 RANKS=\`wc -l < \$PBS_NODEFILE\`
-mpiexec -n \$RANKS ./nek5000
+time mpiexec -n \$RANKS ./nek5000
 
 EOF
 chmod +x run_improv_terminal.sh
@@ -134,7 +134,7 @@ fi
 cp jupyter.yaml ascent_actions.yaml
 ./start_jupyter.sh
 RANKS=\`wc -l < \$PBS_NODEFILE\`
-mpiexec -n \$RANKS ./nek5000
+time mpiexec -n \$RANKS ./nek5000
 
 EOF
 chmod +x run_improv_jupyter.sh

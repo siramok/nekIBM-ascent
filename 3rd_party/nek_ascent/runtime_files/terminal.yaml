@@ -8,8 +8,12 @@
     t2:
       params:
         condition: "1 == 1"
-        actions_file : "line_out.yaml"
+        actions_file : "visnek.yaml"
     t3:
       params:
         condition: "1 == 1"
-        actions_file : "terminal_interface.yaml"
+        actions_file : "line_out.yaml"
+    t4:
+      params:
+        condition: "1 == 1"
+        actions_file : "make_renders.yaml"

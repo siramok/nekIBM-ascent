@@ -19,7 +19,7 @@
     bin_density:
       pipeline: "pl1"
       params:
-        expression: "binning('velocity_mag', 'avg', [axis('x', [0.0, 0.01]), axis('y', [0.0, 0.01]), axis('z', num_bins=100)])"
+        expression: "binning('velocity_mag', 'avg', [axis('x', [0.0, 0.5]), axis('y', [5.0, 5.5]), axis('z', num_bins=100)])"
         name: 2d_binning
 
 -
