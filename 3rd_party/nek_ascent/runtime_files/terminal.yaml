@@ -17,3 +17,11 @@
       params:
         condition: "1 == 1"
         actions_file : "make_renders.yaml"
+    # t5:
+    #   params:
+    #     condition: "1 == 1"
+    #     actions_file : "replay.yaml"
+    t6:
+      params:
+        condition: "1 == 1"
+        actions_file : "terminal_interface.yaml"

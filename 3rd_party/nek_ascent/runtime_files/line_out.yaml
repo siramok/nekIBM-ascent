@@ -4,7 +4,11 @@
     t1:
       params:
         condition: "1 == 1"
-        actions_file : "get_bins.yaml"
+        actions_file : "get_v_bins.yaml"
+    t2:
+      params:
+        condition: "1 == 1"
+        actions_file : "get_av_bins.yaml"
     t2:
       params:
         condition: "1 == 1"

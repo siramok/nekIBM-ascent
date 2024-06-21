@@ -15,9 +15,9 @@
       f3: 
         type: "3slice"
         params: 
-          x_offset: -0.24
-          y_offset: -0.42
-          z_offset: -0.7
+          x_offset: 0
+          y_offset: 15
+          z_offset: -10
     pl2:
       f1: 
         type: "vector_magnitude"
@@ -54,9 +54,9 @@
       f4: 
         type: "3slice"
         params: 
-          x_offset: -0.24
-          y_offset: -0.42
-          z_offset: -0.7
+          x_offset: 0
+          y_offset: 15
+          z_offset: -10
     pl4: 
       f1: 
         type: "vorticity"

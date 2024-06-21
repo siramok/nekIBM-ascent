@@ -1,0 +1,29 @@
+- 
+  action: "add_pipelines"
+  pipelines: 
+    pl1:
+      f1: 
+        type: "vector_magnitude"
+        params: 
+          field: "avg_velocity"
+          output_name: "velocity_mag"
+      f2: 
+        type: "recenter"
+        params: 
+          field: "velocity_mag"
+          association: "element"
+
+-
+  action: "add_queries"
+  queries:
+    bin_density:
+      pipeline: "pl1"
+      params:
+        expression: "binning('velocity_mag', 'avg', [axis('x', [0.0, 0.5]), axis('y', [10.0, 10.5]), axis('z', num_bins=100)])"
+        name: 2d_binning
+
+-
+  action: "save_session"
+  file_name: "avg_bin_data"
+  expression_list:
+    - 2d_binning

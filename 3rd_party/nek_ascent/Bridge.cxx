@@ -300,7 +300,7 @@ void ascent_update(int *istep, double *time, int *ndim, int *nelt, int *nelv, in
                    int *lx1, int *ly1, int *lz1, double *xm1, double *ym1, double *zm1,
                    int *lx2, int *ly2, int *lz2, double *xm2, double *ym2, double *zm2,
                    double *vx, double *vy, double *vz,
-                   int *jx, int *jy, int *jz, int *jv0, double *rpart)
+                   int *jx, int *jy, int *jz, int *jv0, double *rpart, double *uavg, double *vavg, double *wavg)
 {
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -402,6 +402,12 @@ void ascent_update(int *istep, double *time, int *ndim, int *nelt, int *nelv, in
     data["fields/velocity/values/u"].set_external(vx, velocity_array_size);
     data["fields/velocity/values/v"].set_external(vy, velocity_array_size);
     data["fields/velocity/values/w"].set_external(vz, velocity_array_size);
+
+    data["fields/avg_velocity/association"] = "vertex";
+    data["fields/avg_velocity/topology"] = "mesh";
+    data["fields/avg_velocity/values/u"].set_external(uavg, velocity_array_size);
+    data["fields/avg_velocity/values/v"].set_external(vavg, velocity_array_size);
+    data["fields/avg_velocity/values/w"].set_external(wavg, velocity_array_size);
 
     conduit::Node verify_info;
     if (!conduit::blueprint::mesh::verify(data, verify_info))

@@ -34,7 +34,7 @@ extern "C"
                        int *lx1, int *ly1, int *lz1, double *xm1, double *ym1, double *zm1,
                        int *lx2, int *ly2, int *lz2, double *xm2, double *ym2, double *zm2,
                        double *vx, double *vy, double *vz,
-                       int *jx, int *jy, int *jz, int *jv0, double *rpart);
+                       int *jx, int *jy, int *jz, int *jv0, double *rpart, double *uavg, double *vavg, double *wavg);
     void ascent_finalize();
 
     // Callback registration
