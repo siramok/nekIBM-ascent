@@ -53,6 +53,10 @@ c-----------------------------------------------------------------------
       end subroutine nek_ascent_get_dt
 c-----------------------------------------------------------------------
       subroutine nek_ascent_load_new_data()
+      include 'SIZE'
+      include 'TOTAL'
+      include 'LPM'
+      call lpm_init(0)
       call load_fld("field.f00001")
       end subroutine nek_ascent_load_new_data
 c-----------------------------------------------------------------------
